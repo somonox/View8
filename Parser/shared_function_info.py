@@ -1,5 +1,6 @@
 from Translate.translate import translate_bytecode
 from Simplify.simplify import simplify_translated_bytecode
+from IR.v8_lifter import lift_function
 
 
 class CodeLine:
@@ -83,6 +84,9 @@ class SharedFunctionInfo:
         self.simplify_bytecode()
         self.replace_const_pool(nested)
         self.defined = True
+
+    def lift_ir(self):
+        return lift_function(self)
 
     def export(self, export_v8code=False, export_translated=False, export_decompiled=True, nested=False, nested_level=0, tab_level=0):
         export_padding = (' ' * ((6+50)*export_v8code+60*export_translated)) * nested_level + '\t' * tab_level

@@ -1,130 +1,113 @@
-<h1>View8</h1>
-<p><code>View8</code> is a static analysis tool designed to decompile serialized V8 bytecode objects (JSC files) into high-level readable code. To parse and disassemble these serialized objects, View8 utilizes a patched compiled V8 binary. As a result, View8 produces a textual output similar to JavaScript.</p>
+# V8 Bytecode Decompiler CUI
 
+This workspace is organized as a small command-line decompiler framework for
+V8/bytenode cached bytecode.
 
-<h2>Requirements</h2>
-<ul>
-    <li>Python 3.x</li>
-    <li>Disassembler binary. Available versions:</li>
-    <ul>
-        <li>V8 Version <code>9.4.146.24</code> (Used in Node V16.x)</li>
-        <li>V8 Version <code>10.2.154.26</code> (Used in Node V18.x)</li>
-        <li>V8 Version <code>11.3.244.8</code> (Used in Node V20.x)</li>
-    </ul>
-</ul>
-<p>For compiled versions, visit the <a href="https://github.com/suleram/View8/releases">releases page</a>.</p>
+This fork is inspired by and built on
+[`j4k0xb/View8`](https://github.com/j4k0xb/View8). The V8 version hash detector
+was ported to Python from
+[`j4k0xb/v8-version-analyzer`](https://github.com/j4k0xb/v8-version-analyzer).
 
+## Main Entry Point
 
-<h2>Usage</h2>
-<h3>Command-Line Arguments</h3>
-<ul>
-<li><code>input_file</code>: The input file name.</li>
-<li><code>output_file</code>: The output file name.</li>
-<li><code>--path</code>, <code>-p</code>: Path to disassembler binary (optional).</li>
-<li><code>--disassembled</code>, <code>-d</code>: Indicate if the input file is already disassembled (optional).</li>
-<li><code>--export_format</code>, <code>-e</code>: Specify the export format(s). Options are <code>v8_opcode</code>, <code>translated</code>, and <code>decompiled</code>. Multiple options can be combined (optional, default: <code>decompiled</code>).</li>
-<li><code>--nested</code>, <code>-n</code>: Export nested format (optional).</li>
-</ul>
+```bash
+python3 decompiler.py --help
+```
 
-<h3>Basic Usage</h3>
-<p>To decompile a V8 bytecode file and export the decompiled code:</p>
-<pre><code>python view8.py input_file output_file</code></pre>
-<h3>Disassembler Path</h3>
-<p>By default, <code>view8</code> detects the V8 bytecode version of the input file (using <code>VersionDetector.exe</code>) and automatically searches for a compatible disassembler binary in the <code>Bin</code> folder. This can be changed by specifing a different disassembler binary, use the <code>--path</code> (or <code>-p</code>) option:</p>
-<pre><code>python view8.py input_file output_file --path /path/to/disassembler</code></pre>
-<h3>Processing Disassembled Files</h3>
-<p>To skip the disassembling process and provide an already disassembled file as the input, use the <code>--disassembled</code> (or <code>-d</code>) flag:</p>
-<pre><code>python view8.py input_file output_file --disassembled</code></pre>
-<h3>Export nested format instead of flattening</h3>
-<p>To export code with nested function definition, use the <code>--nested</code> (or <code>-n</code>) flag:</p>
-<pre><code>python view8.py input_file output_file --nested</code></pre>
-<h3>Export Formats</h3>
-<p>Specify the export format(s) using the <code>--export_format</code> (or <code>-e</code>) option. You can combine multiple formats:</p>
-<ul>
-<li><code>v8_opcode</code></li>
-<li><code>translated</code></li>
-<li><code>decompiled</code></li>
-</ul>
-<p>For example, to export both V8 opcodes and decompiled code side by side:</p>
-<pre><code>python view8.py input_file output_file -e v8_opcode decompiled</code></pre>
-<p>By default, the format used is <code>decompiled</code>.</p>
+## Install
 
-<h3>VersionDetector.exe</h3>
-<p>The V8 bytecode version is stored as a hash at the beginning of the file. Below are the options available for <code>VersionDetector.exe</code>:</p>
-<ul>
-    <li><code>-h</code>: Retrieves a version and returns its hash.</li>
-    <li><code>-d</code>: Retrieves a hash (little-endian) and returns its corresponding version using brute force.</li>
-    <li><code>-f</code>: Retrieves a file and returns its version.</li>
-</ul>
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+```
 
-### Get V8 Version
+Run tests:
 
-The v8 version of a `.jsc` file can be found using one of the following methods:
+```bash
+python -m unittest tests/test_view8.py
+```
 
-- <https://j4k0xb.github.io/v8-version-analyzer>
-- VersionDetector.exe
-- If the Node.js binary is available: `./path_to_node -p process.versions.v8`
-- If the Electron binary is available:
-  - Linux/Mac: `ELECTRON_RUN_AS_NODE=1 ./path_to_electron_app -p process.versions.v8`
-  - Windows: `set ELECTRON_RUN_AS_NODE=1 && path_to_electron_app -p process.versions.v8`
-- If the Electron version is known: Find the `v8` field in <https://releases.electronjs.org/releases.json>
-- If the Node version is known: Find the `v8` field in <https://nodejs.org/dist/index.json>
+## Common Commands
 
-Sometimes there isn't a matching v8 version because it has been edited. In this case, just select the closest one before.
+Detect the V8 version hash:
 
-### Building The Disassembler
+```bash
+python3 decompiler.py detect /path/to/file.jsc
+```
 
-Guide/disassembler/patch based on [v8dasm](https://github.com/noelex/v8dasm) and <https://github.com/v8/v8/tree/10.6.194.26>.
+Run the full pipeline:
 
-1. Check out your v8 version: <https://v8.dev/docs/source-code>
-2. Apply the [patch](./Disassembler/v8.patch):
+```bash
+python3 decompiler.py all /path/to/file.jsc -o /tmp/decompiled-file --check
+```
 
-    ```sh
-    git apply -3 v8.patch
-    ```
+This writes:
 
-    It's expected that a few merge conflicts occur for different versions, resolve them manually.
+- `<name>.version.json`
+- `<name>.snir.json`
+- `<name>.pseudo.js`
+- `<name>.constants.js`
 
-3. Create a build configuration:
+Export only SNIR:
 
-    ```sh
-    python tools/dev/v8gen.py x64.release
-    ```
+```bash
+python3 decompiler.py lift /path/to/file.jsc /tmp/file.snir.json -f snir
+```
 
-4. Edit the build flags in `out.gn/x64.release/args.gn`:
+Recover constants from an existing SNIR file:
 
-    ```ini
-    dcheck_always_on = false
-    is_component_build = false
-    is_debug = false
-    target_cpu = "x64"
-    use_custom_libcxx = false
-    v8_monolithic = true
-    v8_use_external_startup_data = false
+```bash
+python3 decompiler.py recover /tmp/file.snir.json /tmp/file.constants.js --check
+```
 
-    v8_static_library = true
-    v8_enable_disassembler = true
-    v8_enable_object_print = true
-    ```
+Batch process a directory:
 
-    - For **Node**: add `v8_enable_pointer_compression = false`
+```bash
+python3 decompiler.py batch /path/to/extracted-app/app/js -o /tmp/decompiled --glob '*.jsc' --keep-going
+```
 
-5. Build the static library:
+`decompiler.py` intentionally does not build V8. Patched `v8dasm` build
+guidance for maintainers and coding agents is kept in:
 
-    ```sh
-    ninja -C out.gn/x64.release v8_monolith
-    ```
+```text
+AGENTS.md
+patches/v8/PATCH_GUIDE.md
+```
 
-6. Compile the [disassembler](./Disassembler/v8dasm.cpp):
+## Repository Layout
 
-    - For **Node**:
+- `Parser/`, `Translate/`, `Simplify/`, `Disassembler/`: View8-compatible core modules.
+- `IR/`: SNIR schema and V8 bytecode lifter.
+- `Bin/`: bundled `v8dasm` helper binaries.
+- `tools/recover_from_snir.py`: constant-pool based source reconstruction.
+- `v8_builder.py`: maintainer/agent helper for preparing additional `v8dasm` binaries.
 
-        ```sh
-        clang++ v8dasm.cpp -g -std=c++20 -Iinclude -Lout.gn/x64.release/obj -lv8_libbase -lv8_libplatform -lv8_monolith -o v8dasm
-        ```
+## Technical Specification
 
-    - For **Electron**:
+Implementation contracts and SNIR details are documented in:
 
-        ```sh
-        clang++ v8dasm.cpp -g -std=c++20 -Iinclude -Lout.gn/x64.release/obj -lv8_libbase -lv8_libplatform -lv8_monolith -o v8dasm -DV8_COMPRESS_POINTERS -DV8_ENABLE_SANDBOX
-        ```
+```text
+docs/TECHNICAL_SPEC.md
+```
+
+## Bundled Binaries
+
+The repository currently includes one ready-to-use helper:
+
+```text
+Bin/8.5.210.26-mac-x64-v8dasm
+```
+
+Additional versions/platforms should be prepared by maintainers or coding
+agents using `AGENTS.md`. Generated V8 source trees and build caches are
+ignored by git.
+
+## Notes
+
+Cached bytecode does not preserve exact original JavaScript source. The CUI
+therefore produces multiple projections:
+
+- SNIR JSON for structured analysis.
+- pseudo JS from View8's decompiler.
+- recovered constants/CommonJS modules from surviving constant pools.

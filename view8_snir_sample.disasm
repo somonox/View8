@@ -1,0 +1,19 @@
+Start SharedFunctionInfo
+- kind: NormalFunction
+- start position: 0
+Start BytecodeArray
+Parameter count 2
+Register count 2
+Frame size 16
+         0x000000000000 @    0 : 25 02             Ldar a0
+         0x000000000002 @    1 : 26 fa             Star0
+         0x000000000004 @    2 : 0d 02             LdaSmi #2
+         0x000000000006 @    3 : 3b fa 00          Mul r0, [0]
+         0x000000000009 @    6 : 26 f9             Star1
+         0x00000000000b @    7 : 25 f9             Ldar r1
+         0x00000000000d @    8 : 44 01 01          AddSmi #1, [1]
+         0x000000000010 @   11 : aa                Return
+Constant pool (size = 0)
+Handler Table (size = 0)
+End BytecodeArray
+End SharedFunctionInfo

@@ -1,0 +1,539 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "View8-SNIR-Document",
+  "type": "object",
+  "required": [
+    "schema",
+    "functions"
+  ],
+  "properties": {
+    "schema": {
+      "type": "string"
+    },
+    "functions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema",
+          "name",
+          "kind",
+          "declarer",
+          "argument_count",
+          "register_count",
+          "constant_pool",
+          "exception_table",
+          "semantic_atoms",
+          "fact_store",
+          "dependence_graph",
+          "egraph",
+          "region_candidates",
+          "type_hypotheses",
+          "high_level_candidates",
+          "blocks"
+        ],
+        "properties": {
+          "schema": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "declarer": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "argument_count": {
+            "type": "integer"
+          },
+          "register_count": {
+            "type": "integer"
+          },
+          "constant_pool": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "exception_table": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "integer"
+              },
+              "minItems": 2,
+              "maxItems": 2
+            }
+          },
+          "semantic_atoms": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "offset",
+                "opcode",
+                "raw",
+                "operands",
+                "reads",
+                "writes",
+                "effects",
+                "control_flow",
+                "provenance",
+                "semantics"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "offset": {
+                  "type": "integer"
+                },
+                "opcode": {
+                  "type": "string"
+                },
+                "raw": {
+                  "type": "string"
+                },
+                "operands": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "kind",
+                      "text"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string"
+                      },
+                      "text": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "value": {
+                        "type": "integer"
+                      },
+                      "index": {
+                        "type": "integer"
+                      },
+                      "offset": {
+                        "type": "integer"
+                      },
+                      "registers": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                },
+                "reads": {
+                  "type": "object",
+                  "required": [
+                    "accumulator",
+                    "registers",
+                    "arguments",
+                    "constants",
+                    "contexts"
+                  ],
+                  "properties": {
+                    "accumulator": {
+                      "type": "boolean"
+                    },
+                    "registers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "arguments": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "constants": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "contexts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "writes": {
+                  "type": "object",
+                  "required": [
+                    "accumulator",
+                    "registers",
+                    "arguments",
+                    "constants",
+                    "contexts"
+                  ],
+                  "properties": {
+                    "accumulator": {
+                      "type": "boolean"
+                    },
+                    "registers": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "arguments": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "constants": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    },
+                    "contexts": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                },
+                "effects": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "control_flow": {
+                  "type": "object",
+                  "required": [
+                    "kind"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string"
+                    },
+                    "target": {
+                      "type": "integer"
+                    },
+                    "target_condition": {
+                      "type": "string"
+                    },
+                    "targets": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "required": [
+                          "case",
+                          "target"
+                        ],
+                        "properties": {
+                          "case": {
+                            "type": "integer"
+                          },
+                          "target": {
+                            "type": "integer"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "provenance": {
+                  "type": "object",
+                  "required": [
+                    "source",
+                    "offset",
+                    "opcode",
+                    "raw",
+                    "confidence"
+                  ],
+                  "properties": {
+                    "source": {
+                      "type": "string"
+                    },
+                    "offset": {
+                      "type": "integer"
+                    },
+                    "opcode": {
+                      "type": "string"
+                    },
+                    "raw": {
+                      "type": "string"
+                    },
+                    "confidence": {
+                      "type": "number"
+                    }
+                  }
+                },
+                "semantics": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "op"
+                    ],
+                    "properties": {
+                      "op": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "index": {
+                        "type": "integer"
+                      },
+                      "slot": {
+                        "type": "string"
+                      },
+                      "dst": {
+                        "type": "string"
+                      },
+                      "src": {
+                        "type": "object"
+                      },
+                      "operator": {
+                        "type": "string"
+                      },
+                      "left": {
+                        "type": "string"
+                      },
+                      "right": {
+                        "type": "object"
+                      },
+                      "operand": {
+                        "type": "string"
+                      },
+                      "obj": {
+                        "type": "string"
+                      },
+                      "key": {
+                        "type": "string"
+                      },
+                      "val": {
+                        "type": "string"
+                      },
+                      "condition": {
+                        "type": "string"
+                      },
+                      "target": {
+                        "type": "integer"
+                      },
+                      "targets": {
+                        "type": "array"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "fact_store": {
+            "type": "object",
+            "required": [
+              "facts"
+            ],
+            "properties": {
+              "facts": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "relation",
+                    "subject",
+                    "value",
+                    "confidence",
+                    "evidence"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "relation": {
+                      "type": "string"
+                    },
+                    "subject": {
+                      "type": "string"
+                    },
+                    "value": {},
+                    "confidence": {
+                      "type": "number"
+                    },
+                    "evidence": {
+                      "type": "array"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "dependence_graph": {
+            "type": "object",
+            "required": [
+              "nodes",
+              "edges"
+            ],
+            "properties": {
+              "nodes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "offset",
+                    "opcode"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "offset": {
+                      "type": "integer"
+                    },
+                    "opcode": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "edges": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "kind",
+                    "from",
+                    "to"
+                  ],
+                  "properties": {
+                    "kind": {
+                      "type": "string"
+                    },
+                    "from": {
+                      "type": "string"
+                    },
+                    "to": {
+                      "type": "string"
+                    },
+                    "resource": {
+                      "type": "string"
+                    },
+                    "edge": {
+                      "type": "string"
+                    },
+                    "target": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "egraph": {
+            "type": "object",
+            "required": [
+              "classes"
+            ],
+            "properties": {
+              "classes": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "root",
+                    "members",
+                    "constraints",
+                    "provenance"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "root": {
+                      "type": "string"
+                    },
+                    "members": {
+                      "type": "array"
+                    },
+                    "constraints": {
+                      "type": "object"
+                    },
+                    "provenance": {
+                      "type": "object"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "region_candidates": {
+            "type": "array"
+          },
+          "type_hypotheses": {
+            "type": "array"
+          },
+          "high_level_candidates": {
+            "type": "array"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "id",
+                "start",
+                "end",
+                "instructions",
+                "successors",
+                "predecessors",
+                "exception_handlers"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "start": {
+                  "type": "integer"
+                },
+                "end": {
+                  "type": "integer"
+                },
+                "instructions": {
+                  "type": "array"
+                },
+                "successors": {
+                  "type": "array"
+                },
+                "predecessors": {
+                  "type": "array"
+                },
+                "exception_handlers": {
+                  "type": "array"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

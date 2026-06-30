@@ -6,6 +6,14 @@ all_functions = {}
 repeat_last_line = False
 
 
+def is_section_boundary(line):
+    return (
+        line in ("End SharedFunctionInfo", "End BytecodeArray", "End FixedArray", None)
+        or (isinstance(line, str) and line.startswith("Handler Table"))
+        or (isinstance(line, str) and line.startswith("Source Position Table"))
+    )
+
+
 def set_repeat_line_flag(flag):
     global repeat_last_line
     repeat_last_line = flag
@@ -25,8 +33,10 @@ def get_next_line(file):
 
 
 def parse_array(lines, func_name):
-    if "Start " not in (line := next(lines)):
-        raise Exception(f"Error got line \"{line}\" not Start Array")
+    line = next(lines)
+    if "Start " not in line:
+        set_repeat_line_flag(True)
+        return "[]"
     const_list = parse_const_array(lines, func_name)
     array_literal = "[" + ", ".join(const_list) + "]"
     while "End " not in (line := next(lines)):
@@ -37,8 +47,10 @@ def parse_array(lines, func_name):
 
 
 def parse_object(lines, func_name):
-    if "Start " not in (line := next(lines)):
-        raise Exception(f"Error got line \"{line}\" not Start Object")
+    line = next(lines)
+    if "Start " not in line:
+        set_repeat_line_flag(True)
+        return "{}"
     const_list = iter(parse_const_array(lines, func_name)[1:])
     object_literal = "{" + ", ".join([f"{key}: {value}" for key, value in zip(const_list, const_list)]) + "}"
     while "End " not in (line := next(lines)):
@@ -65,6 +77,9 @@ def parse_bytecode(line, lines):
 
 def parse_const_line(lines, func_name):
     var_line = next(lines)
+    if is_section_boundary(var_line):
+        set_repeat_line_flag(True)
+        return None, "<missing>"
     match = re.search(r"^(\d+(?:\-\d+)?):\s(0x[0-9a-fA-F]+\s)?(.+)", var_line)
     if not match:
         raise ValueError(f"Invalid constant line format: {var_line}")
@@ -95,12 +110,18 @@ def parse_const_line(lines, func_name):
 
 def parse_const_array(lines, func_name):
     while "- length:" not in (line := next(lines)):
+        if is_section_boundary(line):
+            set_repeat_line_flag(True)
+            return []
         pass
     size = int(parse("- length:{}", line)[0])
     if not size:
         return []
 
-    while not (line := next(lines)).startswith("0"):
+    while not re.match(r"^0:", (line := next(lines))):
+        if is_section_boundary(line):
+            set_repeat_line_flag(True)
+            return ["<missing>"] * size
         pass
     set_repeat_line_flag(True)
 
@@ -113,6 +134,9 @@ def parse_const_array(lines, func_name):
             const_list.append(value)
             continue
         next_idx, value = parse_const_line(lines, func_name)
+        if next_idx is None:
+            const_list.extend(["<missing>"] * (size - idx))
+            break
         const_list.append(value)
 
     return const_list

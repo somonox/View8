@@ -1,0 +1,14 @@
+[project]
+name = "v8-bytecode-decompiler-cui"
+version = "0.1.0"
+description = "CUI framework for V8/bytenode cached bytecode analysis and View8-based decompilation"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+dependencies = [
+  "parse==1.20.2",
+  "jsonschema>=4.0.0",
+]
+
+[tool.setuptools]
+py-modules = ["decompiler", "v8_builder"]

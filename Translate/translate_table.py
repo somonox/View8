@@ -1,7 +1,21 @@
 import ast
 
+def clean_val(arg):
+    if not arg:
+        return ""
+    if arg.startswith('#'):
+        return arg[1:]
+    if arg.startswith('[') and arg.endswith(']'):
+        return arg[1:-1]
+    if arg.startswith('<') and arg.endswith('>'):
+        return arg[1:-1]
+    if arg.startswith('(') and arg.endswith(')'):
+        return arg[1:-1]
+    return arg
+
 
 def expand_reg_list(reg_rang):
+
     reg_range_split = reg_rang.split('-')
     start = reg_range_split[0][1:]
     end = reg_range_split[1][1:]
@@ -46,12 +60,24 @@ def invoke_intrinsic(args):
 
 
 def add_jump_blocks(obj, type_):
-    jump_to = int(obj.args[-1].split(' ')[-1][:-1])
+    import re
+    last_arg = obj.args[-1]
+    match = re.search(r"@(-?\d+)", last_arg)
+    if not match:
+        match = re.search(r"(-?\d+)\)?$", last_arg)
+    if not match:
+        match = re.search(r"\[(-?\d+)\]", last_arg)
+    
+    if not match:
+        jump_to = int(last_arg.split(' ')[-1][:-1])
+    else:
+        jump_to = int(match.group(1))
 
     if jump_to < obj.offset:
         obj.add_jump_to_table(jump_type="Loop", start=jump_to, end=obj.offset)
         return
     obj.add_jump_to_table(jump_type=type_, start=obj.offset, end=jump_to)
+
 
 
 def add_switch_on(obj):
@@ -173,7 +199,7 @@ operands = {
     'LdaTrue': lambda obj: f"ACCU = true",
     'LdaFalse': lambda obj: f"ACCU = false",
     'LdaNull': lambda obj: f"ACCU = null",
-    'LdaSmi': lambda obj: f"ACCU = {obj.args[0][1:-1]}",
+    'LdaSmi': lambda obj: f"ACCU = {clean_val(obj.args[0])}",
     "Ldar": lambda obj: f"ACCU = {obj.args[0]}",
     "Ldar0": lambda obj: f"ACCU = r0",
     "Ldar1": lambda obj: f"ACCU = r1",
@@ -300,19 +326,19 @@ operands = {
     "ShiftRight": lambda obj: f"ACCU = ({obj.args[0]} >> ACCU)",
     "ShiftLeft": lambda obj: f"ACCU = ({obj.args[0]} << ACCU)",
 
-    "AddSmi": lambda obj: f"ACCU = (ACCU + {obj.args[0][1:-1]})",
-    "SubSmi": lambda obj: f"ACCU = (ACCU - {obj.args[0][1:-1]})",
-    "ModSmi": lambda obj: f"ACCU = (ACCU % {obj.args[0][1:-1]})",
-    "MulSmi": lambda obj: f"ACCU = (ACCU * {obj.args[0][1:-1]})",
-    "ExpSmi": lambda obj: f"ACCU = (ACCU ** {obj.args[0]})",
-    "DivSmi": lambda obj: f"ACCU = (ACCU / {obj.args[0][1:-1]})",
-    "BitwiseXorSmi": lambda obj: f"ACCU = (ACCU ^ {obj.args[0][1:-1]})",
-    "BitwiseOrSmi": lambda obj: f"ACCU = (ACCU | {obj.args[0][1:-1]})",
-    "BitwiseAndSmi": lambda obj: f"ACCU = (ACCU & {obj.args[0][1:-1]})",
+    "AddSmi": lambda obj: f"ACCU = (ACCU + {clean_val(obj.args[0])})",
+    "SubSmi": lambda obj: f"ACCU = (ACCU - {clean_val(obj.args[0])})",
+    "ModSmi": lambda obj: f"ACCU = (ACCU % {clean_val(obj.args[0])})",
+    "MulSmi": lambda obj: f"ACCU = (ACCU * {clean_val(obj.args[0])})",
+    "ExpSmi": lambda obj: f"ACCU = (ACCU ** {clean_val(obj.args[0])})",
+    "DivSmi": lambda obj: f"ACCU = (ACCU / {clean_val(obj.args[0])})",
+    "BitwiseXorSmi": lambda obj: f"ACCU = (ACCU ^ {clean_val(obj.args[0])})",
+    "BitwiseOrSmi": lambda obj: f"ACCU = (ACCU | {clean_val(obj.args[0])})",
+    "BitwiseAndSmi": lambda obj: f"ACCU = (ACCU & {clean_val(obj.args[0])})",
     "BitwiseNotSmi": lambda obj: f"ACCU = ~(ACCU)",
-    "ShiftRightLogicalSmi": lambda obj: f"ACCU = (ACCU >>> {obj.args[0][1:-1]})",
-    "ShiftRightSmi": lambda obj: f"ACCU = (ACCU >> {obj.args[0][1:-1]})",
-    "ShiftLeftSmi": lambda obj: f"ACCU = (ACCU << {obj.args[0][1:-1]})",
+    "ShiftRightLogicalSmi": lambda obj: f"ACCU = (ACCU >>> {clean_val(obj.args[0])})",
+    "ShiftRightSmi": lambda obj: f"ACCU = (ACCU >> {clean_val(obj.args[0])})",
+    "ShiftLeftSmi": lambda obj: f"ACCU = (ACCU << {clean_val(obj.args[0])})",
 
     ##################
     # throw operands #

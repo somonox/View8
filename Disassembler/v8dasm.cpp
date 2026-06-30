@@ -1,6 +1,8 @@
 #include <fstream>
 #include <iostream>
+#include <memory>
 #include <string>
+#include <vector>
 
 #include "include/v8.h"
 #include "include/libplatform/libplatform.h"
@@ -48,7 +50,49 @@ static void readAllBytes(const std::string& file, std::vector<char>& buffer) {
   }
 }
 
+static std::string readText(const std::string& file) {
+  std::ifstream infile(file, std::ios::binary);
+  return std::string(std::istreambuf_iterator<char>(infile),
+                     std::istreambuf_iterator<char>());
+}
+
+static void writeAllBytes(const std::string& file, const uint8_t* data, int length) {
+  std::ofstream outfile(file, std::ios::binary);
+  outfile.write(reinterpret_cast<const char*>(data), length);
+}
+
+static void compileToBytecode(const std::string& inputFile, const std::string& outputFile) {
+  std::string sourceText = readText(inputFile);
+  Local<String> sourceString =
+      String::NewFromUtf8(isolate, sourceText.c_str(), NewStringType::kNormal,
+                          static_cast<int>(sourceText.size())).ToLocalChecked();
+  ScriptOrigin origin = CreateScriptOrigin(
+      String::NewFromUtf8(isolate, inputFile.c_str(), NewStringType::kNormal).ToLocalChecked());
+  ScriptCompiler::Source source(sourceString, origin);
+
+  Local<UnboundScript> script;
+  if (!ScriptCompiler::CompileUnboundScript(isolate, &source, ScriptCompiler::kNoCompileOptions)
+           .ToLocal(&script)) {
+    throw std::runtime_error("Failed to compile JavaScript source.");
+  }
+
+  std::unique_ptr<ScriptCompiler::CachedData> cachedData(
+      ScriptCompiler::CreateCodeCache(script));
+  if (!cachedData || !cachedData->data || cachedData->length <= 0) {
+    throw std::runtime_error("Failed to create V8 code cache.");
+  }
+
+  writeAllBytes(outputFile, cachedData->data, cachedData->length);
+}
+
 int main(int argc, char* argv[]) {
+  if (argc < 2) {
+    std::cerr << "Usage:\n"
+              << "  " << argv[0] << " input.jsc\n"
+              << "  " << argv[0] << " --compile input.js output.jsc\n";
+    return 1;
+  }
+
   V8::SetFlagsFromString("--no-lazy --no-flush-bytecode");
 
   V8::InitializeICU();
@@ -66,7 +110,20 @@ int main(int argc, char* argv[]) {
   Local<v8::Context> context = Context::New(isolate);
   Context::Scope context_scope(context);
 
-  std::vector<char> data;
-  readAllBytes(argv[1], data);
-  loadBytecode((uint8_t*)data.data(), data.size());
+  try {
+    if (std::string(argv[1]) == "--compile") {
+      if (argc != 4) {
+        throw std::runtime_error("--compile requires input.js and output.jsc.");
+      }
+      compileToBytecode(argv[2], argv[3]);
+      return 0;
+    }
+
+    std::vector<char> data;
+    readAllBytes(argv[1], data);
+    loadBytecode((uint8_t*)data.data(), data.size());
+  } catch (const std::exception& error) {
+    std::cerr << error.what() << "\n";
+    return 1;
+  }
 }
